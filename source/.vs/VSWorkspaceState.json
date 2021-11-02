@@ -1,0 +1,12 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\resources",
+    "\\simulator",
+    "\\simulator\\lib",
+    "\\simulator\\lib\\modules",
+    "\\simulator\\lib\\modules\\auto",
+    "\\simulator\\lib\\modules\\auto\\dynamics"
+  ],
+  "PreviewInSolutionExplorer": false
+}

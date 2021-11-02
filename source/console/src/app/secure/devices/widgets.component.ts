@@ -261,6 +261,7 @@ export class WidgetsComponent implements OnInit, OnDestroy { // implements Logge
         const _self = this;
         this.blockUI.start('Stopping devices...');
         this.allSelected = false;
+        _self.loadDevices(); // Reload devices' status to minimize risk of attempting to stop a device that's already stopped because its simulation duration has elapsed, which causes it to be permanently stuck in a "stopping" stage
         const _devices = _.where(this.devices, {
             isSelected: true,
             stage: 'hydrated'
@@ -321,7 +322,73 @@ export class WidgetsComponent implements OnInit, OnDestroy { // implements Logge
             this.blockUI.stop();
         }
  
-    }    
+    }
+
+    deleteSelectedDevices() { // Repurposed stopSelectedDevices() to allow deletion of multiple widgets simultaneously
+        const _self = this;
+        this.blockUI.start('Deleting devices...');
+        this.allSelected = false;
+        const _devices = _.where(this.devices, {
+            isSelected: true,
+            stage: 'sleeping'
+        });
+
+        let _counter = 0;
+        let _devicesToUpdate = [];
+        let _errors = 0;
+        if (_devices.length > 0) {
+            _devices.forEach(function (device) {
+                if (device.isSelected) {
+                    _counter++;
+                    _devicesToUpdate.push(device);
+                    _self.deviceService.deleteDevice(device.id).then((resp: any) => {
+                        _self.loadDevices();
+                    });
+                    if (_devicesToUpdate.length === 20 || _counter === _devices.length) {
+                        console.log(_devicesToUpdate.length)
+                        let _sendDevices = [
+                            ..._devicesToUpdate
+                        ];
+                        _devicesToUpdate.length = 0;
+                        _self.bulkUpdateDevices(_sendDevices).then(() => {
+                            if (_counter === _devices.length) {
+                                if (_errors > 0) {
+                                    _self.blockUI.stop();
+                                    swal(
+                                        'Oops...',
+                                        'Unable to delete some of the selected widgets.',
+                                        'info');
+                                    _self.logger.error('error occurred deleting selected devices, show message');
+                                }
+                                _self.loadDevices();
+                                _self.statsService.refresh();
+                            }
+                        }).catch((err) => {
+                            _self.logger.error(err);
+                            _devicesToUpdate.length = 0;
+                            _errors++;
+                            if (_counter === _devices.length) {
+                                _self.blockUI.stop();
+                                swal(
+                                    'Oops...',
+                                    'Unable to delete some of the selected widgets.',
+                                    'info');
+                                _self.logger.error('error occurred deleting selected devices, show message');
+                                _self.loadDevices();
+                                _self.statsService.refresh();
+                            }
+                        });
+                    }
+                }
+            });
+        } else {
+            this.devices.forEach(function (d) {
+                d.isSelected = false;
+            });
+            this.blockUI.stop();
+        }
+
+    }
 
     startWidget(deviceId) {
         this.blockUI.start('Starting device...');

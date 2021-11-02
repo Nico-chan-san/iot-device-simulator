@@ -1688,7 +1688,7 @@ Resources:
                               Fn::Sub: "${AWS::Region}"
                           awslogs-stream-prefix: "ecs"
                   Cpu: 1024
-                  Image: "898061675696.dkr.ecr.us-east-1.amazonaws.com/iotsim:v2.1"
+                  Image: "747565123955.dkr.ecr.us-west-2.amazonaws.com/iotsim:latest"
                   Name: "iot-simulation-engine-container"
                   Essential: True
 

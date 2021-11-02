@@ -71,7 +71,7 @@ class SpeedCalc extends DataCalc {
             impulse = -speed;
         }
 
-        this.data = speed + impulse;
+        this.data = speed + impulse; // rebuild comment lol
 
     }
 

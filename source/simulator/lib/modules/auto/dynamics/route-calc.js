@@ -163,7 +163,7 @@ class RouteCalc extends DataCalc {
                         this.last_calc = moment();
 
                         if (this.route.stages[this.current_stage].triggers) {
-                            // update to inculde new triggers
+                            // update to include new triggers
                             this._triggers = this.route.stages[this.current_stage].triggers;
                             this._update_triggers = true;
                         }

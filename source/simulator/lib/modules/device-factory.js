@@ -30,7 +30,7 @@ class DeviceFactory {
     }
 
     /**
-     * Load the catalog of routes for vehicles to traverse.
+     * Load the catalog of routes for vehicles to traverse. // Obv copy pasted from loadRoutes() lol
      */
     loadDeviceType(userId, type) {
         let _self = this;

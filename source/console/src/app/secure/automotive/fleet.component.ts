@@ -87,7 +87,7 @@ export class FleetComponent implements OnInit, OnDestroy {
     }
 
     loadDevices() {
-        let _filter = { 
+        let _filter = {
             ...this.filter
         };
 
@@ -99,7 +99,7 @@ export class FleetComponent implements OnInit, OnDestroy {
             this.metrics = data;
             this.pages.total = Math.ceil(data.total / this.pages.pageSize);
             this.deviceService.getAllDevices((this.pages.current - 1), _filter).then((devices: Device[]) => {
-                if (this.allSelected) { 
+                if (this.allSelected) {
                     this.allSelected = false;
                 }
                 this.blockUI.stop();
@@ -160,10 +160,10 @@ export class FleetComponent implements OnInit, OnDestroy {
         let _errors = 0;
         if (_devices.length > 0) {
             _devices.forEach(function(device) {
-                if(device.isSelected) {
+                if (device.isSelected) {
                     _self.startDevice(device).then(() => {
                         _counter++;
-                        if(_counter === _devices.length) {
+                        if (_counter === _devices.length) {
                             if (_errors > 0) {
                                 _self.blockUI.stop();
                                 swal(
@@ -179,7 +179,7 @@ export class FleetComponent implements OnInit, OnDestroy {
                         _counter++;
                         _self.logger.error(err);
                         _errors++;
-                        if(_counter === _devices.length) {
+                        if (_counter === _devices.length) {
                             _self.blockUI.stop();
                             swal(
                                 'Oops...',
@@ -198,7 +198,7 @@ export class FleetComponent implements OnInit, OnDestroy {
             });
             this.blockUI.stop();
         }
- 
+
     }
 
 
@@ -206,6 +206,7 @@ export class FleetComponent implements OnInit, OnDestroy {
         const _self = this;
         this.blockUI.start('Stopping vehicles...');
         this.allSelected = false;
+        _self.loadDevices(); // Reload vehicles' status to minimize risk of attempting to stop a vehicle that's already stopped because its simulation duration has elapsed, which causes it to be permanently stuck in a "stopping" stage
         const _devices = _.where(this.fleet, {
             isSelected: true,
             stage: 'hydrated'
@@ -216,7 +217,7 @@ export class FleetComponent implements OnInit, OnDestroy {
         let _errors = 0;
         if (_devices.length > 0) {
             _devices.forEach(function(device) {
-                if(device.isSelected) {
+                if (device.isSelected) {
                     _counter++;
                     if (device.stage === 'hydrated') {
                         device.operation = 'stop';
@@ -229,7 +230,7 @@ export class FleetComponent implements OnInit, OnDestroy {
                         ];
                         _devicesToUpdate.length = 0;
                         _self.bulkUpdateVehicles(_sendDevices).then(() => {
-                            if(_counter === _devices.length) {
+                            if (_counter === _devices.length) {
                                 if (_errors > 0) {
                                     _self.blockUI.stop();
                                     swal(
@@ -245,7 +246,7 @@ export class FleetComponent implements OnInit, OnDestroy {
                             _self.logger.error(err);
                             _devicesToUpdate.length = 0;
                             _errors++;
-                            if(_counter === _devices.length) {
+                            if (_counter === _devices.length) {
                                 _self.blockUI.stop();
                                 swal(
                                     'Oops...',
@@ -265,8 +266,85 @@ export class FleetComponent implements OnInit, OnDestroy {
             });
             this.blockUI.stop();
         }
- 
-    }  
+
+    }
+
+    deleteSelectedVehicles() { // Repurposed stopSelectedVehicles() + deleteVehicle() to allow deletion of multiple vehicles simultaneously
+        const _self = this;
+        swal({
+            title: 'Are you sure you want to delete these vehicles?',
+            text: 'You won\'t be able to revert this!',
+            type: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete them!'
+        }).then((result) => {
+            if (result.value) {
+                this.blockUI.start('Deleting vehicles...');
+                this.allSelected = false;
+                const _devices = _.where(this.fleet, {
+                    isSelected: true,
+                    stage: 'sleeping'
+                });
+
+                let _counter = 0;
+                let _devicesToUpdate = [];
+                let _errors = 0;
+                if (_devices.length > 0) {
+                    _devices.forEach(function(device) {
+                        if (device.isSelected) {
+                            _counter++;
+                            _devicesToUpdate.push(device);
+                            _self.deviceService.deleteDevice(device.id).then((resp: any) => {
+                                _self.loadDevices();
+                            });
+                            if (_devicesToUpdate.length === 20 || _counter === _devices.length) {
+                                console.log(_devicesToUpdate.length)
+                                let _sendDevices = [
+                                    ..._devicesToUpdate
+                                ];
+                                _devicesToUpdate.length = 0;
+                                _self.bulkUpdateVehicles(_sendDevices).then(() => {
+                                    if (_counter === _devices.length) {
+                                        if (_errors > 0) {
+                                            _self.blockUI.stop();
+                                            swal(
+                                                'Oops...',
+                                                'Unable to delete some of the selected vehicles.',
+                                                'info');
+                                            _self.logger.error('error occurred deleting selected vehicles, show message');
+                                        }
+                                        _self.loadDevices();
+                                        _self.statsService.refresh();
+                                    }
+                                }).catch((err) => {
+                                    _self.logger.error(err);
+                                    _devicesToUpdate.length = 0;
+                                    _errors++;
+                                    if (_counter === _devices.length) {
+                                        _self.blockUI.stop();
+                                        swal(
+                                            'Oops...',
+                                            'Unable to delete some of the selected vehicles.',
+                                            'info');
+                                        _self.logger.error('error occurred deleting selected vehicles, show message');
+                                        _self.loadDevices();
+                                        _self.statsService.refresh();
+                                    }
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    this.fleet.forEach(function(d) {
+                        d.isSelected = false;
+                    });
+                    this.blockUI.stop();
+                }
+            }
+        });
+    }
 
     startVehicle(vehicleId: string) {
         this.blockUI.start('Starting vehicle...');
@@ -291,7 +369,7 @@ export class FleetComponent implements OnInit, OnDestroy {
         } else {
             this.blockUI.stop();
             this.loadDevices();
-        }        
+        }
     }
 
     private bulkUpdateVehicles(devices: Device[]) {
@@ -399,6 +477,13 @@ export class FleetComponent implements OnInit, OnDestroy {
         $('#addModal').modal('show');
     }
 
+    openDroneAddModal() {
+        this.widgetRequest = new WidgetRequest();
+        this.provisionCountError = false;
+        this.widgetRequest.typeId = 'automotive';
+        $('#addDroneModal').modal('show');
+    }
+
     addVehicles(w: WidgetRequest) {
         this.provisionCountError = false;
         if (w.count > 100) {
@@ -422,6 +507,32 @@ export class FleetComponent implements OnInit, OnDestroy {
             this.loadDevices();
         });
     }
+
+    /*
+    addDrones(w: WidgetRequest) {
+        this.provisionCountError = false;
+        if (w.count > 100) {
+            this.provisionCountError = true;
+            return;
+        }
+
+        $('#addDroneModal').modal('hide');
+        this.blockUI.start('Provisioning drones...');
+        this.deviceService.createDevice(w).then((resp: any) => {
+            this.loadDevices();
+            this.statsService.refresh();
+        }).catch((err) => {
+            this.blockUI.stop();
+            swal(
+                'Oops...',
+                'Something went wrong! Unable to create the new drone.',
+                'error');
+            this.logger.error('error occurred calling createDevice api, show message');
+            this.logger.error(err);
+            this.loadDevices();
+        });
+    }
+    */
 
     deleteVehicle(vehicleId: string) {
         const _self = this;
@@ -456,6 +567,12 @@ export class FleetComponent implements OnInit, OnDestroy {
     cancelAddVehicles(form: NgForm) {
         $('#addModal').modal('hide');
     }
+
+    /*
+    cancelAddDrones(form: NgForm) {
+        $('#addDroneModal').modal('hide');
+    }
+    */
 
     customize() {
         this.router.navigate(['/securehome/automotive/customize']);

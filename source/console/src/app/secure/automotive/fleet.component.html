@@ -35,6 +35,7 @@
                 <div class="clearfix">
                     <button type="button" class="btn btn-sm btn-success" (click)="openVehicleAddModal()"><i class="mdi mdi-plus"></i> Add Vehicles</button>
                     <button type="button" class="btn btn-sm btn-warning" (click)="customize()"><i class="mdi mdi-car-wash"></i> Configuration</button>
+                    <!-- <button type="button" class="btn btn-sm btn-success" (click)="openDroneAddModal()"><i class="mdi mdi-plus"></i> Add Drones</button> -->
                 </div>
                 <!-- .modal -->
                 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel1">
@@ -60,12 +61,44 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-default" (click)="cancelAddVehicles(f);">Cancel</button>
-                                <button type="submit" class="btn btn-success"  (click)="addVehicles(widgetRequest);">Submit</button>
+                                <button type="submit" class="btn btn-success" (click)="addVehicles(widgetRequest);">Submit</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- .modal -->
+                <!-- .droneModal -->
+                <!--
+                <div class="modal fade" id="addDroneModal" tabindex="-1" role="dialog" aria-labelledby="addDroneModalLabel1">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title" id="exampleDroneModalLabel1">Create drones</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <form name="dronesForm" #f="ngForm" class="form-control-line" (ngSubmit)="addDrones(f.value)" novalidate>
+                                    <div class="form-group">
+                                        <label for="drones" class="form-control-label">Number of drones to create:</label>
+                                        <input type="number" class="form-control form-control-line" onkeypress='return event.charCode >= 48 && event.charCode <= 57' name="count" id="count" required ngModel #count="ngModel" [(ngModel)]="widgetRequest.count" min="1">
+                                        <div class="form-control-feedback">
+                                            <small>Number of drones to create. Up to 100 at a time.</small>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-danger" *ngIf="provisionCountError">
+                                        <h3 class="text-danger"><i class="fa fa-exclamation-circle"></i> Oops!</h3> Your number of drones to create must be <= 100.
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" (click)="cancelAddDrones(f);">Cancel</button>
+                                <button type="submit" class="btn btn-success" (click)="addDrones(widgetRequest);">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                -->
+                <!-- .droneModal -->
             </div>
         </div>
     </div>
@@ -168,7 +201,8 @@
                 <!-- <h4 class="float-left card-title">Vehicles ({{(pages.current-1)*100}} - {{((pages.current-1)*100) + fleet.length}})</h4> -->
                 <button type="button" class="float-right btn btn-sm btn-success m-l-15" (click)="refreshData()"><i class="fa fa-refresh"></i> Refresh</button>
                 <button type="submit" class="float-right btn btn-sm btn-danger m-l-15" *ngIf="getSelectedCount() === true" (click)="stopSelectedVehicles();"><i class="mdi mdi-stop"></i> Stop Vehicles</button>
-                <button type="submit" class="float-right btn btn-sm btn-success" *ngIf="getSelectedCount() === true" (click)="startSelectedVehicles();"><i class="mdi mdi-play"></i> Start Vehicles</button>
+                <button type="submit" class="float-right btn btn-sm btn-success m-l-15" *ngIf="getSelectedCount() === true" (click)="startSelectedVehicles();"><i class="mdi mdi-play"></i> Start Vehicles</button>
+                <button type="submit" class="float-right btn btn-sm btn-danger" *ngIf="getSelectedCount() === true" (click)="deleteSelectedVehicles();"><i class="mdi mdi-delete-circle"></i> Delete Vehicles</button>
                 <h4 class="card-title">Vehicles <span *ngIf="fleet.length > 0">({{((pages.current-1)*100) + 1}} - {{((pages.current-1)*100) + fleet.length}})</span></h4>
                 <div *ngIf="fleet.length > 0" class="m-t-20 m-r-10">
                     <div class="pull-right">
@@ -214,9 +248,9 @@
                                 <td>
                                     <div class="pull-right" role="group" aria-label="Basic example">
                                         <button type="button" class="btn btn-success btn-sm" data-toggle="tooltip" title="View Vehicle" data-placement="top" (click)="openDevice(vehicle.id)"><i class="mdi mdi-information"></i> View</button>
-                                        <button type="button" class="btn btn-success btn-sm" data-toggle="tooltip" title="Start Simulation" *ngIf="vehicle.stage === 'sleeping'"  (click)="startVehicle(vehicle.id)"><i class="mdi mdi-play"></i> Start</button>
+                                        <button type="button" class="btn btn-success btn-sm" data-toggle="tooltip" title="Start Simulation" *ngIf="vehicle.stage === 'sleeping'" (click)="startVehicle(vehicle.id)"><i class="mdi mdi-play"></i> Start</button>
                                         <button type="button" class="btn btn-success btn-sm" data-toggle="tooltip" title="Stop Simulation" *ngIf="vehicle.stage === 'hydrated'" (click)="stopVehicle(vehicle.id)"><i class="mdi mdi-stop"></i> Stop</button>
-                                        <button type="button" class="btn btn-danger btn-sm" data-toggle="tooltip" title="Delete Vehicle" *ngIf="vehicle.stage === 'sleeping'"  (click)="deleteVehicle(vehicle.id)"><i class="mdi mdi-delete-circle"></i> Delete</button>
+                                        <button type="button" class="btn btn-danger btn-sm" data-toggle="tooltip" title="Delete Vehicle" *ngIf="vehicle.stage === 'sleeping'" (click)="deleteVehicle(vehicle.id)"><i class="mdi mdi-delete-circle"></i> Delete</button>
                                     </div>
                                 </td>
                             </tr>

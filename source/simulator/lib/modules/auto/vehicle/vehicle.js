@@ -7,7 +7,8 @@ const randomstring = require('randomstring');
 const shortid = require('shortid');
 const moment = require('moment');
 const _ = require('underscore');
-const uuidV4 = require('uuid/v4');
+const { v4: uuidV4 } = require('uuid');
+// const uuidV4 = require('uuid/v4');
 
 /**
  *

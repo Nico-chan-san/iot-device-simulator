@@ -142,7 +142,7 @@ class RouteCalc extends DataCalc {
                         }
 
                         if (this._random_triggers[j].type === 'oiltemp' && !this._random_triggers[j].triggered) {
-                            // update to inculde new triggers
+                            // update to include new triggers
                             this._triggers = {
                                 high_oil_temp: true
                             };
@@ -223,7 +223,7 @@ class RouteCalc extends DataCalc {
                     let _rand = (Math.random() * (_upper - _lower) + _lower).toFixed(1);
                     _triggers.push({
                         type: route.triggers[i].type,
-                        km: Math.round(_rand * 100) / 100,
+                        km: route.triggers[i].km[j], // Math.round(_rand * 100) / 100, // replaced randomly generated location with an array of km values in the json triggers
                         triggered: false
                     });
                 }

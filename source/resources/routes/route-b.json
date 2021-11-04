@@ -4,15 +4,18 @@
   "triggers": [
     {
       "occurances": 4,
-      "type": "dtc"
+      "type": "dtc",
+      "km": [ 0.2, 0.8, 1, 1.5 ]
     },
     {
       "occurances": 4,
-      "type": "brake"
+      "type": "brake",
+      "km": [ 0.1, 0.5, 1.1, 1.9 ]
     },
     {
       "occurances": 1,
-      "type": "oiltemp"
+      "type": "oiltemp",
+      "km": [ 1.2 ]
     }
   ],
   "end": [ "-79.38707584645641", "43.67043319167374" ],

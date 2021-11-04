@@ -203,7 +203,7 @@ class VehicleFactory extends DeviceFactory {
 
     _getRandomRoute() {
         const _rand = Math.floor(Math.random() * (this.routes.length - 0)) + 0;
-        return this.routes[_rand];
+        return this.routes[0]; //this.routes[_rand];
     }
 
     _loadRoutes(routes, index) {

@@ -33,7 +33,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="clearfix">
-                    <button type="button" class="btn btn-sm btn-success" (click)="openVehicleAddModal()"><i class="mdi mdi-plus"></i> Add Vehicles</button>
+                    <button type="button" class="btn btn-sm btn-success" (click)="openVehicleAddModal()"><i class="mdi mdi-plus"></i> Add Drone(s)</button>
                     <button type="button" class="btn btn-sm btn-warning" (click)="customize()"><i class="mdi mdi-car-wash"></i> Configuration</button>
                     <!-- <button type="button" class="btn btn-sm btn-success" (click)="openDroneAddModal()"><i class="mdi mdi-plus"></i> Add Drones</button> -->
                 </div>
@@ -42,20 +42,20 @@
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h4 class="modal-title" id="exampleModalLabel1">Create vehicles</h4>
+                                <h4 class="modal-title" id="exampleModalLabel1">Create drones</h4>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                             </div>
                             <div class="modal-body">
                                 <form name="vehiclesForm" #f="ngForm" class="form-control-line" (ngSubmit)="addVehicles(f.value)" novalidate>
                                     <div class="form-group">
-                                        <label for="vehicles" class="form-control-label">Number of vehicles to create:</label>
+                                        <label for="vehicles" class="form-control-label">Number of drones to create:</label>
                                         <input type="number" class="form-control form-control-line" onkeypress='return event.charCode >= 48 && event.charCode <= 57' name="count" id="count" required ngModel #count="ngModel" [(ngModel)]="widgetRequest.count" min="1">
                                         <div class="form-control-feedback">
-                                            <small>Number of vehicles to create. Up to 100 at a time.</small>
+                                            <small>Number of drones to create. Up to 100 at a time.</small>
                                         </div>
                                     </div>
                                     <div class="alert alert-danger" *ngIf="provisionCountError">
-                                        <h3 class="text-danger"><i class="fa fa-exclamation-circle"></i> Oops!</h3> Your number of vehicles to create must be <= 100.
+                                        <h3 class="text-danger"><i class="fa fa-exclamation-circle"></i> Oops!</h3> Your number of drones to create must be <= 100.
                                     </div>
                                 </form>
                             </div>
@@ -113,7 +113,7 @@
                     <div class="round round-lg align-self-center round-muted"><i class="mdi mdi-car"></i></div>
                     <div class="m-l-10 align-self-center">
                         <h3 class="m-b-0 font-light">{{metrics.total}}</h3>
-                        <h5 class="text-muted m-b-0">Total Vehicles</h5></div>
+                        <h5 class="text-muted m-b-0">Total Drones</h5></div>
                 </div>
             </div>
         </div>
@@ -127,7 +127,7 @@
                     <div class="round round-lg align-self-center round-success-alt"><i class="mdi mdi-car"></i></div>
                     <div class="m-l-10 align-self-center">
                         <h3 class="m-b-0 font-lgiht">{{metrics.hydrated}}</h3>
-                        <h5 class="text-muted m-b-0">Vehicles Running</h5></div>
+                        <h5 class="text-muted m-b-0">Drones Running</h5></div>
                 </div>
             </div>
         </div>
@@ -155,7 +155,7 @@
                     <div class="round round-lg align-self-center round-danger"><i class="mdi mdi-car"></i></div>
                     <div class="m-l-10 align-self-center">
                         <h3 class="m-b-0 font-lgiht">{{metrics.sleeping}}</h3>
-                        <h5 class="text-muted m-b-0">Vehicles Stopped</h5></div>
+                        <h5 class="text-muted m-b-0">Drones Stopped</h5></div>
                 </div>
             </div>
         </div>
@@ -180,7 +180,7 @@
                                 </div>
                             </div>                            
                             <div class="col-xs-12 col-md-4">
-                                <label for="deviceId" class="form-control-label">Vehicle ID:</label>
+                                <label for="deviceId" class="form-control-label">Drone ID:</label>
                                 <input type="text" class="form-control" name="deviceId" id="deviceId" required ngModel #deviceId="ngModel" [(ngModel)]="filter.deviceId">
                             </div>
                         </div>
@@ -200,10 +200,10 @@
                 <!-- /.modal -->
                 <!-- <h4 class="float-left card-title">Vehicles ({{(pages.current-1)*100}} - {{((pages.current-1)*100) + fleet.length}})</h4> -->
                 <button type="button" class="float-right btn btn-sm btn-success m-l-15" (click)="refreshData()"><i class="fa fa-refresh"></i> Refresh</button>
-                <button type="submit" class="float-right btn btn-sm btn-danger m-l-15" *ngIf="getSelectedCount() === true" (click)="stopSelectedVehicles();"><i class="mdi mdi-stop"></i> Stop Vehicles</button>
-                <button type="submit" class="float-right btn btn-sm btn-success m-l-15" *ngIf="getSelectedCount() === true" (click)="startSelectedVehicles();"><i class="mdi mdi-play"></i> Start Vehicles</button>
-                <button type="submit" class="float-right btn btn-sm btn-danger" *ngIf="getSelectedCount() === true" (click)="deleteSelectedVehicles();"><i class="mdi mdi-delete-circle"></i> Delete Vehicles</button>
-                <h4 class="card-title">Vehicles <span *ngIf="fleet.length > 0">({{((pages.current-1)*100) + 1}} - {{((pages.current-1)*100) + fleet.length}})</span></h4>
+                <button type="submit" class="float-right btn btn-sm btn-danger m-l-15" *ngIf="getSelectedCount() === true" (click)="deleteSelectedVehicles();"><i class="mdi mdi-delete-circle"></i> Delete Drones</button>
+                <button type="submit" class="float-right btn btn-sm btn-warning m-l-15" *ngIf="getSelectedCount() === true" (click)="stopSelectedVehicles();"><i class="mdi mdi-stop"></i> Stop Drones</button>
+                <button type="submit" class="float-right btn btn-sm btn-success" *ngIf="getSelectedCount() === true" (click)="startSelectedVehicles();"><i class="mdi mdi-play"></i> Start Drones</button>
+                <h4 class="card-title">Drones <span *ngIf="fleet.length > 0">({{((pages.current-1)*100) + 1}} - {{((pages.current-1)*100) + fleet.length}})</span></h4>
                 <div *ngIf="fleet.length > 0" class="m-t-20 m-r-10">
                     <div class="pull-right">
                         <button type="button" [class]="pages.current === 0 ? 'btn btn-sm btn-default disabled' : 'btn btn-sm btn-default'" (click)="previousPage()" [disabled]="pages.current === 1"><i class="mdi mdi-chevron-left"></i></button>
@@ -217,10 +217,10 @@
                             <tr>
                                 <th></th>
                                 <th><input type="checkbox" id="chk_all" [(ngModel)]="allSelected" class="classic-checkbox" (change)="selectAll()"></th>
-                                <th>Vehicle</th>
+                                <th>Drone</th>
                                 <th class="text-right">Stage</th>
                                 <th class="text-right">Last Route</th>
-                                <th class="text-right">Trip Time</th>
+                                <th class="text-right">Journey Time</th>
                                 <th class="text-right">Sims</th>
                                 <th class="text-right">Last Simulation</th>
                                 <th></th>

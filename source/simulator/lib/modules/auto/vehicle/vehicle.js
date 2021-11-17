@@ -54,6 +54,7 @@ class Vehicle extends Device {
         this.lastSnapshot = '';
         this.lastCalc = moment();
         this.suppress_codes = [];
+        this.suppress_obj = {};
 
         this.metadata = {
             vin: this.VIN,
@@ -232,6 +233,7 @@ class Vehicle extends Device {
                 if (snapshot.hasOwnProperty(this.data[i].name)) {
 
                     let value = snapshot[this.data[i].name];
+
                     if (this.data[i].precision != 0) {
                         // value = value - (value % this.data[i].precision)
                         value = Number(Math.round(value + 'e' + this.data[i].rounding) + 'e-' + this.data[i].rounding);
@@ -245,6 +247,8 @@ class Vehicle extends Device {
                         value: value
                     };
 
+
+
                     // skip lat / long to be able to send as pair
                     if (this.data[i].name === 'latitude') {
                         _telem.latitude = value;
@@ -253,6 +257,35 @@ class Vehicle extends Device {
                     } else {
                         this._publish([this.dataTopic, this.VIN].join('/'), data);
                     }
+                }
+            }
+
+            // process custom triggers (events) /nico
+            if (!_.isEmpty(snapshot.triggers)) {
+
+                let suppress = false;
+                
+                if (_.isEqual(this.suppress_obj, snapshot.triggers)) {
+                    suppress = true;
+                }
+                
+                var { triggers } = snapshot;
+                var { type, stage, message, mqtt } = triggers;
+
+                var eventTopic = mqtt || 'connecteddrone/defaultevents'; //use the mqtt topic provided in route.json if there is one, otherwise use /defaultevents
+
+                if (!suppress) {
+                    let _eventData = {
+                        timestamp: moment.utc().format('YYYY-MM-DD HH:mm:ss.SSSSSSSSS'),
+                        trip_id: this.tripId,
+                        vin: this.VIN,
+                        name: type,
+                        stage,
+                        message
+                    };
+                    this._publish([eventTopic, this.VIN].join('/'), _eventData);
+                    this.options.logger.log(this.VIN + ': Event triggered. Values: ' + type + stage + message + eventTopic, this.options.logger.levels.ROBUST);
+                    this.suppress_obj = snapshot.triggers;
                 }
             }
 
@@ -368,7 +401,7 @@ class Vehicle extends Device {
             Body: JSON.stringify(_geojson)
         };
 
-        s3.upload(params, function(err, data) {
+        s3.upload(params, function (err, data) {
             if (err) {
                 _self.options.logger.log(['Error uploading geojson for trip', tripId, err].join(' '), _self.options.logger.levels.INFO);
             } else {

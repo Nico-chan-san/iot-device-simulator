@@ -97,6 +97,10 @@ class RouteCalc extends DataCalc {
 
         if (!this._route_ended) {
 
+            let _time_delta = _current_time.diff(this.route.stages[0].route_start, 'seconds');
+
+            // this.logger.log('Seconds elapsed: ' + _time_delta, this.logger.levels.ROBUST);
+
             if (!this._burndown) {
                 let _milage = this.route.stages[this.current_stage].odometer_start +
                     this.route.stages[this.current_stage].km;
@@ -127,27 +131,49 @@ class RouteCalc extends DataCalc {
                 }
 
                 for (let j = 0; j < this._random_triggers.length; j++) {
-                    if (_odometer >= this._random_triggers[j].km) {
-                        if (this._random_triggers[j].type === 'brake' && !this._random_triggers[j].triggered) {
-                            this._throttle_position = 0.0;
-                            this._brake_position = 100.0;
-                            this._random_triggers[j].triggered = true;
-                        }
-
-                        if (this._random_triggers[j].type === 'dtc' && !this._random_triggers[j].triggered) {
-                            this._dtc_code = this._get_random_dtc();
-                            this._dtc_sent = true;
-                            this.logger.log(['DTC triggered', this._dtc_code].join(': '), this.logger.levels.ROBUST);
-                            this._random_triggers[j].triggered = true;
-                        }
-
-                        if (this._random_triggers[j].type === 'oiltemp' && !this._random_triggers[j].triggered) {
-                            // update to include new triggers
-                            this._triggers = {
-                                high_oil_temp: true
-                            };
-                            this._update_triggers = true;
-                            this._random_triggers[j].triggered = true;
+                    if (this.current_stage >= this._random_triggers[j].stage && !this._random_triggers[j].triggered) {
+                        switch (this._random_triggers[j].type) {
+                            case 'brake':
+                                this._throttle_position = 0.0;
+                                this._brake_position = 100.0;
+                                this._triggers = {
+                                    high_oil_temp: true,
+                                    type: this._random_triggers[j].type,
+                                    stage: this._random_triggers[j].stage,
+                                    message: this._random_triggers[j].message
+                                };
+                                this._update_triggers = true;
+                                this._random_triggers[j].triggered = true;
+                                this.logger.log('Brake triggered at stage ' + this._triggers.stage, this.logger.levels.ROBUST);
+                                break;
+                            case 'dtc':
+                                this._dtc_code = this._get_random_dtc();
+                                this._dtc_sent = true;
+                                this.logger.log('DTC [' + this._dtc_code + '] triggered at stage ' + this._random_triggers[j].stage, this.logger.levels.ROBUST);
+                                this._random_triggers[j].triggered = true;
+                                break;
+                            case 'oiltemp':
+                                // update to include new triggers (amazon comment)
+                                this._triggers = {
+                                    high_oil_temp: true,
+                                    type: this._random_triggers[j].type,
+                                    stage: this._random_triggers[j].stage,
+                                    message: this._random_triggers[j].message
+                                };
+                                this._update_triggers = true;
+                                this.logger.log('oiltemp triggered at stage: ' + this._triggers.stage, this.logger.levels.ROBUST);
+                                this._random_triggers[j].triggered = true;
+                                break;
+                            default: // process new/custom triggers
+                                this._triggers = {
+                                    type: this._random_triggers[j].type,
+                                    stage: this._random_triggers[j].stage,
+                                    message: this._random_triggers[j].message,
+                                    mqtt: this._random_triggers[j].mqtt
+                                };
+                                this._update_triggers = true;
+                                this._random_triggers[j].triggered = true;
+                                this.logger.log('route-calc custom trigger ' + this._triggers.type + ' triggered at stage: ' + this._triggers.stage, this.logger.levels.ROBUST);
                         }
                     }
                 }
@@ -156,20 +182,26 @@ class RouteCalc extends DataCalc {
                     //transition to next stage in route
                     this.current_stage++;
                     if (this.current_stage < this.route.stages.length) {
-                        //initialize the new stage
-                        this.route.stages[this.current_stage].odometer_start = _odometer;
-                        this.latitude = this.route.stages[this.current_stage].start[1];
-                        this.longitude = this.route.stages[this.current_stage].start[0];
-                        this.last_calc = moment();
+                        if (_time_delta < this.route.time_limit) {
+                            //initialize the new stage
+                            this.route.stages[this.current_stage].odometer_start = _odometer;
+                            this.latitude = this.route.stages[this.current_stage].start[1];
+                            this.longitude = this.route.stages[this.current_stage].start[0];
+                            this.last_calc = moment();
 
-                        if (this.route.stages[this.current_stage].triggers) {
-                            // update to include new triggers
-                            this._triggers = this.route.stages[this.current_stage].triggers;
-                            this._update_triggers = true;
+                            if (this.route.stages[this.current_stage].triggers) {
+                                // update to include new triggers
+                                this._triggers = this.route.stages[this.current_stage].triggers;
+                                this._update_triggers = true;
+                                this.logger.log('Don\'t think this ever happens; stages have no triggers property.', this.logger.levels.ROBUST);
+                            }
+                        } else {
+                            this.logger.log('Time limit reached; ending route prematurely.', this.logger.levels.ROBUST);
+                            this._start_burndown();
                         }
                     } else {
-                        this._burndown = true;
-                        this._last_burndown_calc = moment();
+                        this.logger.log('Last stage reached; ending route.', this.logger.levels.ROBUST);
+                        this._start_burndown();
                     }
                 }
             } else {
@@ -214,16 +246,18 @@ class RouteCalc extends DataCalc {
 
     _get_random_triggers(route) {
         let _triggers = [];
-        let _upper = route.km;
-        let _lower = 0.2;
+        // let _upper = route.km;
+        // let _lower = 0.2;
 
         if (route.triggers) {
             for (let i = 0; i < route.triggers.length; i++) {
                 for (let j = 0; j < route.triggers[i].occurances; j++) {
-                    let _rand = (Math.random() * (_upper - _lower) + _lower).toFixed(1);
+                    // let _rand = (Math.random() * (_upper - _lower) + _lower).toFixed(1); + Math.round(_rand * 100) / 100 old random km generation
                     _triggers.push({
                         type: route.triggers[i].type,
-                        km: route.triggers[i].km[j], // Math.round(_rand * 100) / 100, // replaced randomly generated location with an array of km values in the json triggers
+                        stage: route.triggers[i].stage[j], // replaced randomly generated location in km with specific stage
+                        message: route.triggers[i].message,
+                        mqtt: route.triggers[i].mqtt,
                         triggered: false
                     });
                 }
@@ -301,6 +335,11 @@ class RouteCalc extends DataCalc {
 
         let _rand = Math.floor(Math.random() * (_upper - _lower)) + _lower;
         return _rand;
+    }
+
+    _start_burndown() {
+        this._burndown = true;
+        this._last_burndown_calc = moment();
     }
 
 };

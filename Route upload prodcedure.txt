@@ -1,0 +1,9 @@
+Route.json upload procedure:
+
+Once you've specified your route in the JSON, use your CLI to upload it to the S3 data bucket's route folder.
+
+Navigate to the directory where the JSON is stored, then run the following command:
+
+aws s3 cp [file] s3://[s3databucket]/routes/ --recursive --acl bucket-owner-full-control
+
+Next, you need to refresh the simulation engine. Go to the ECS cluster iot-device-simulation and stop all tasks. It will automatically re-run the tasks, making use of the newly uploaded JSON.

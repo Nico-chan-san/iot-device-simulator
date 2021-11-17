@@ -1,23 +1,41 @@
 {
-  "route_id": "route-b",
+  "route_id": "custom route",
   "profile": "normal",
+  "events": [
+    {
+      "type": "MQTT",
+      "name": "Out of battery",
+      "occurances": 1,
+      "stage": [ 14 ]
+    }
+  ],
   "triggers": [
     {
       "occurances": 4,
       "type": "dtc",
-      "km": [ 0.2, 0.8, 1, 1.5 ]
+      "stage": [ 9, 18, 27, 88 ]
     },
     {
       "occurances": 4,
       "type": "brake",
-      "km": [ 0.1, 0.5, 1.1, 1.9 ]
+      "stage": [ 2, 10, 23, 44 ],
+      "message": "Brake to full stop."
     },
     {
       "occurances": 1,
       "type": "oiltemp",
-      "km": [ 1.2 ]
+      "stage": [ 5 ],
+      "message":  "Warning! High oil temperature."
+    },
+    {
+      "occurances": 1,
+      "type": "outofbattery",
+      "stage": [ 6 ],
+      "message": "This drone has run out of battery!",
+      "mqtt": "connecteddrone/events"
     }
   ],
+  "time_limit": 120,
   "end": [ "-79.38707584645641", "43.67043319167374" ],
   "description": "Short normal route",
   "name": "Route B",

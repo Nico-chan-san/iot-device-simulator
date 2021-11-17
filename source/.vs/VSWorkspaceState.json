@@ -1,17 +1,12 @@
 {
   "ExpandedNodes": [
     "",
-    "\\console",
-    "\\console\\dist",
-    "\\console\\dist\\assets",
-    "\\console\\dist\\assets\\aws-iot",
-    "\\console\\src",
-    "\\console\\src\\app",
-    "\\console\\src\\app\\secure",
-    "\\console\\src\\app\\secure\\landing",
     "\\resources",
-    "\\resources\\routes"
+    "\\simulator",
+    "\\simulator\\lib",
+    "\\simulator\\lib\\modules",
+    "\\simulator\\lib\\modules\\auto",
+    "\\simulator\\lib\\modules\\auto\\dynamics"
   ],
-  "SelectedNode": "\\console\\dist\\index.html",
   "PreviewInSolutionExplorer": false
 }
